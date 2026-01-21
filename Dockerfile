@@ -1,20 +1,25 @@
-# Use official PHP image with Apache
+# Use official PHP with Apache
 FROM php:8.2-apache
 
-# Enable PDO SQLite extension
-RUN docker-php-ext-install pdo pdo_sqlite
+# Install system dependencies for SQLite
+RUN apt-get update && apt-get install -y \
+    sqlite3 \
+    libsqlite3-dev \
+    && docker-php-ext-install pdo pdo_sqlite \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy project files to container
+# Copy project files
 COPY . /var/www/html/
 
 # Set working directory
 WORKDIR /var/www/html/
 
-# Give Apache permission to write to SQLite file
+# Give Apache permission to write SQLite DB
 RUN chown -R www-data:www-data /var/www/html/database
 
-# Expose port (Render uses 10000 for PHP apps by default)
-EXPOSE 10000
+# Expose port (Apache)
+EXPOSE 80
 
-# Start Apache in foreground
+# Start Apache
 CMD ["apache2-foreground"]
